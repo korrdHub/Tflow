@@ -47,3 +47,11 @@ def client(db):
         yield c
     app.router.lifespan_context = original_lifespan
     app.dependency_overrides.clear()
+
+
+@pytest.fixture
+def auth_client(client):
+    r = client.post("/auth/anonymous")
+    token = r.json()["access_token"]
+    client.headers["Authorization"] = f"Bearer {token}"
+    return client
