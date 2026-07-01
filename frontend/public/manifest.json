@@ -1,0 +1,9 @@
+{
+  "name": "严师APP",
+  "short_name": "严师",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2563eb",
+  "icons": []
+}
