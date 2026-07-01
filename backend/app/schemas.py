@@ -42,3 +42,22 @@ class PlanOut(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class PlanLogCreate(BaseModel):
+    type: str
+    detail: str = ""
+    response: str | None = None
+    extend_hours: int = 0
+
+
+class PlanLogOut(BaseModel):
+    id: UUID
+    plan_id: UUID
+    type: str
+    detail: str
+    response: str | None
+    extend_hours: int
+
+    class Config:
+        from_attributes = True
