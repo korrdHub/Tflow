@@ -28,6 +28,7 @@ class User(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     email = Column(String, unique=True, nullable=True, index=True)
     name = Column(String, nullable=True)
+    hashed_password = Column(String, nullable=True)
     mode = Column(Enum(UserMode), default=UserMode.MODERATE, nullable=False)
     settings = Column(JSON, default=dict)
     created_at = Column(DateTime, default=datetime.utcnow)
