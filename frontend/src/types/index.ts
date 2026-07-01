@@ -7,8 +7,23 @@ export interface User {
   id: string;
   email?: string;
   name?: string;
-  mode: "strict" | "moderate" | "coach";
+  mode: UserMode;
 }
+
+export type UserMode = "strict" | "moderate" | "coach";
+
+export interface LoginInput {
+  username: string;
+  password: string;
+}
+
+export interface RegisterInput {
+  email: string;
+  password: string;
+  name?: string;
+}
+
+export type PlanStatus = "draft" | "active" | "completed" | "abandoned" | "overdue" | "archived";
 
 export interface Plan {
   id: string;
@@ -17,7 +32,8 @@ export interface Plan {
   completion_standard: string;
   deadline: string;
   reminder_frequency: number;
-  status: "draft" | "active" | "completed" | "abandoned" | "overdue" | "archived";
+  status: PlanStatus;
+  mode?: UserMode;
   created_at: string;
   completed_at?: string;
 }
@@ -27,12 +43,40 @@ export interface PlanInput {
   completion_standard: string;
   deadline: string;
   reminder_frequency?: number;
+  mode?: UserMode;
+}
+
+export interface PlanLog {
+  id: string;
+  plan_id: string;
+  type: "reminder" | "followup" | "escalation";
+  detail: string;
+  response?: "completed" | "extend" | "abandon";
+  extend_hours: number;
+  created_at: string;
+}
+
+export interface PlanLogInput {
+  type: PlanLog["type"];
+  detail?: string;
+  response?: PlanLog["response"];
+  extend_hours?: number;
 }
 
 export interface ReviewInput {
   completed: boolean;
   reason?: string;
   user_reflection?: string;
+}
+
+export interface Review {
+  id: string;
+  plan_id: string;
+  date: string;
+  completed: boolean;
+  reason?: string;
+  ai_analysis: Record<string, unknown>;
+  user_reflection: string;
 }
 
 export interface ReviewAnalysis {

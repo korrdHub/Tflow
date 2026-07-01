@@ -1,13 +1,13 @@
 import { useState } from "react";
-import { createReview } from "../api/review";
 
 interface Props {
   open: boolean;
   planId: string;
   onSubmitted: () => void;
+  onSubmit?: (data: { completed: boolean; reason?: string }) => Promise<void>;
 }
 
-export default function ReviewModal({ open, planId, onSubmitted }: Props) {
+export default function ReviewModal({ open, planId, onSubmitted, onSubmit }: Props) {
   const [completed, setCompleted] = useState(true);
   const [reason, setReason] = useState("");
   const [error, setError] = useState("");
@@ -24,7 +24,9 @@ export default function ReviewModal({ open, planId, onSubmitted }: Props) {
     setError("");
     setSubmitting(true);
     try {
-      await createReview(planId, { completed, reason });
+      if (onSubmit) {
+        await onSubmit({ completed, reason });
+      }
       onSubmitted();
       setCompleted(true);
       setReason("");
@@ -36,36 +38,65 @@ export default function ReviewModal({ open, planId, onSubmitted }: Props) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <form onSubmit={handleSubmit} className="w-full max-w-sm rounded-lg bg-white p-6 shadow-xl">
-        <h3 className="mb-4 text-lg font-bold">强制复盘</h3>
-        <div className="mb-4 flex gap-4">
-          <label className="flex items-center gap-1">
-            <input type="radio" checked={completed} onChange={() => setCompleted(true)} />
-            完成
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--ink)]/80 backdrop-blur-sm animate-fade-in">
+      <form
+        onSubmit={handleSubmit}
+        className="relative w-full max-w-md border border-[var(--border-strong)] bg-[var(--ink-light)] p-8 animate-scale-in"
+      >
+        <div className="absolute -top-6 left-1/2 -translate-x-1/2">
+          <span className="seal h-14 w-14 text-base">复盘</span>
+        </div>
+
+        <div className="mt-6 text-center">
+          <h3 className="font-display text-2xl text-[var(--paper)]">强制复盘</h3>
+          <p className="mt-2 text-sm text-[var(--text-muted)]">
+            诚实面对结果，才能持续精进
+          </p>
+        </div>
+
+        <div className="mt-6 flex justify-center gap-6">
+          <label className="flex cursor-pointer items-center gap-2 text-[var(--paper)]">
+            <input
+              type="radio"
+              name={`review-${planId}`}
+              checked={completed}
+              onChange={() => setCompleted(true)}
+              className="h-4 w-4 accent-[var(--seal)]"
+            />
+            <span>完成</span>
           </label>
-          <label className="flex items-center gap-1">
-            <input type="radio" checked={!completed} onChange={() => setCompleted(false)} />
-            未完成
+          <label className="flex cursor-pointer items-center gap-2 text-[var(--paper)]">
+            <input
+              type="radio"
+              name={`review-${planId}`}
+              checked={!completed}
+              onChange={() => setCompleted(false)}
+              className="h-4 w-4 accent-[var(--seal)]"
+            />
+            <span>未完成</span>
           </label>
         </div>
+
         {!completed && (
-          <div className="mb-4">
+          <div className="mt-5 animate-fade-in-up">
+            <label className="form-label">未完成原因</label>
             <textarea
-              placeholder="原因"
+              placeholder="请如实填写原因，这是复盘分析的重要依据"
               value={reason}
               onChange={(e) => setReason(e.target.value)}
-              className="w-full rounded border p-2"
+              rows={3}
             />
           </div>
         )}
-        {error && <p className="mb-2 text-sm text-red-600">{error}</p>}
+
+        {error && <p className="form-error mt-4 text-center">{error}</p>}
+
         <button
           type="submit"
           disabled={submitting}
-          className="w-full rounded bg-blue-600 py-2 text-white disabled:opacity-50"
+          className="btn btn-primary mt-6 w-full"
         >
-          提交复盘
+          {submitting ? <span className="spinner" /> : <span>提交复盘</span>}
         </button>
       </form>
     </div>
