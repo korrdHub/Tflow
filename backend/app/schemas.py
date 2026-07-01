@@ -1,6 +1,6 @@
 from datetime import datetime
 from uuid import UUID
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, model_validator
 from app.models import PlanStatus
 
 
@@ -58,6 +58,32 @@ class PlanLogOut(BaseModel):
     detail: str
     response: str | None
     extend_hours: int
+
+    class Config:
+        from_attributes = True
+
+
+class ReviewCreate(BaseModel):
+    date: datetime | None = None
+    completed: bool
+    reason: str | None = None
+    user_reflection: str = ""
+
+    @model_validator(mode="after")
+    def require_reason_if_incomplete(self):
+        if not self.completed and not self.reason:
+            raise ValueError("Reason is required when plan is not completed")
+        return self
+
+
+class ReviewOut(BaseModel):
+    id: UUID
+    plan_id: UUID
+    date: datetime
+    completed: bool
+    reason: str | None
+    ai_analysis: dict
+    user_reflection: str
 
     class Config:
         from_attributes = True
