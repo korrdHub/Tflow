@@ -2,8 +2,6 @@
 
 const sw = self as unknown as ServiceWorkerGlobalScope;
 
-const CACHE_NAME = "yanshi-v1";
-
 sw.addEventListener("install", (event) => {
   event.waitUntil(sw.skipWaiting());
 });
