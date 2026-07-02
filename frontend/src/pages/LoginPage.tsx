@@ -88,6 +88,14 @@ export default function LoginPage() {
             {error && (
               <div className="mb-4 border border-[var(--seal)]/30 bg-[var(--seal)]/10 px-4 py-3 text-sm text-[var(--seal-light)] animate-fade-in">
                 {error}
+                {tab === "anonymous" && (
+                  <button
+                    onClick={handleAnonymous}
+                    className="ml-2 underline underline-offset-2 hover:text-[var(--paper)]"
+                  >
+                    重试
+                  </button>
+                )}
               </div>
             )}
 

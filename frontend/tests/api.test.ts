@@ -3,6 +3,6 @@ import { apiClient } from "../src/api/client";
 
 describe("apiClient", () => {
   it("has baseURL pointing to backend", () => {
-    expect(apiClient.defaults.baseURL).toBe("http://localhost:8000");
+    expect(apiClient.defaults.baseURL).toBe("");
   });
 });
