@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<!--
+    Adaptive Resonance — Generative art expressing the living attention field of conversational AI.
+    Based on templates/viewer.html. Fixed sections preserved; algorithm and parameters customized.
+-->
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adaptive Resonance — Generative Art</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&family=Lora:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --anthropic-dark: #141413;
+            --anthropic-light: #faf9f5;
+            --anthropic-mid-gray: #b0aea5;
+            --anthropic-light-gray: #e8e6dc;
+            --anthropic-orange: #d97757;
+            --anthropic-blue: #6a9bcc;
+            --anthropic-green: #788c5d;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, var(--anthropic-light) 0%, #f5f3ee 100%);
+            min-height: 100vh;
+            color: var(--anthropic-dark);
+        }
+
+        .container {
+            display: flex;
+            min-height: 100vh;
+            padding: 20px;
+            gap: 20px;
+        }
+
+        .sidebar {
+            width: 320px;
+            flex-shrink: 0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(20, 20, 19, 0.1);
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        .sidebar h1 {
+            font-family: 'Lora', serif;
+            font-size: 24px;
+            font-weight: 500;
+            color: var(--anthropic-dark);
+            margin-bottom: 8px;
+        }
+
+        .sidebar .subtitle {
+            color: var(--anthropic-mid-gray);
+            font-size: 14px;
+            margin-bottom: 32px;
+            line-height: 1.4;
+        }
+
+        .control-section {
+            margin-bottom: 32px;
+        }
+
+        .control-section h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--anthropic-dark);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .control-section h3::before {
+            content: '•';
+            color: var(--anthropic-orange);
+            font-weight: bold;
+        }
+
+        .seed-input {
+            width: 100%;
+            background: var(--anthropic-light);
+            padding: 12px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            margin-bottom: 12px;
+            border: 1px solid var(--anthropic-light-gray);
+            text-align: center;
+        }
+
+        .seed-input:focus {
+            outline: none;
+            border-color: var(--anthropic-orange);
+            box-shadow: 0 0 0 2px rgba(217, 119, 87, 0.1);
+            background: white;
+        }
+
+        .seed-controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .regen-button {
+            margin-bottom: 0;
+        }
+
+        .control-group {
+            margin-bottom: 20px;
+        }
+
+        .control-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--anthropic-dark);
+            margin-bottom: 8px;
+        }
+
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .slider-container input[type="range"] {
+            flex: 1;
+            height: 4px;
+            background: var(--anthropic-light-gray);
+            border-radius: 2px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .slider-container input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            background: var(--anthropic-orange);
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .slider-container input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.1);
+            background: #c86641;
+        }
+
+        .slider-container input[type="range"]::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            background: var(--anthropic-orange);
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .value-display {
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            color: var(--anthropic-mid-gray);
+            min-width: 60px;
+            text-align: right;
+        }
+
+        .color-group {
+            margin-bottom: 16px;
+        }
+
+        .color-group label {
+            display: block;
+            font-size: 12px;
+            color: var(--anthropic-mid-gray);
+            margin-bottom: 4px;
+        }
+
+        .color-picker-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .color-picker-container input[type="color"] {
+            width: 32px;
+            height: 32px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            background: none;
+            padding: 0;
+        }
+
+        .color-value {
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            color: var(--anthropic-mid-gray);
+        }
+
+        .button {
+            background: var(--anthropic-orange);
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            width: 100%;
+        }
+
+        .button:hover {
+            background: #c86641;
+            transform: translateY(-1px);
+        }
+
+        .button:active {
+            transform: translateY(0);
+        }
+
+        .button.secondary {
+            background: var(--anthropic-blue);
+        }
+
+        .button.secondary:hover {
+            background: #5a8bb8;
+        }
+
+        .button.tertiary {
+            background: var(--anthropic-green);
+        }
+
+        .button.tertiary:hover {
+            background: #6b7b52;
+        }
+
+        .button-row {
+            display: flex;
+            gap: 8px;
+        }
+
+        .button-row .button {
+            flex: 1;
+        }
+
+        .canvas-area {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 0;
+        }
+
+        #canvas-container {
+            width: 100%;
+            max-width: 1000px;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(20, 20, 19, 0.1);
+            background: white;
+        }
+
+        #canvas-container canvas {
+            display: block;
+            width: 100% !important;
+            height: auto !important;
+        }
+
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: var(--anthropic-mid-gray);
+            padding: 120px 0;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+            }
+
+            .canvas-area {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <h1>Adaptive Resonance</h1>
+            <div class="subtitle">A living field of attention inspired by the quiet pulse of conversational AI interfaces.</div>
+
+            <div class="control-section">
+                <h3>Seed</h3>
+                <input type="number" id="seed-input" class="seed-input" value="12345" onchange="updateSeed()">
+                <div class="seed-controls">
+                    <button class="button secondary" onclick="previousSeed()">← Prev</button>
+                    <button class="button secondary" onclick="nextSeed()">Next →</button>
+                </div>
+                <button class="button tertiary regen-button" onclick="randomSeedAndUpdate()">↻ Random</button>
+            </div>
+
+            <div class="control-section">
+                <h3>Parameters</h3>
+
+                <div class="control-group">
+                    <label>Attention Density</label>
+                    <div class="slider-container">
+                        <input type="range" id="attentionDensity" min="300" max="4000" step="100" value="1600" oninput="updateParam('attentionDensity', this.value)">
+                        <span class="value-display" id="attentionDensity-value">1600</span>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>Thought Speed</label>
+                    <div class="slider-container">
+                        <input type="range" id="thoughtSpeed" min="0.2" max="3.0" step="0.1" value="1.2" oninput="updateParam('thoughtSpeed', this.value)">
+                        <span class="value-display" id="thoughtSpeed-value">1.2</span>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>Influence Scale</label>
+                    <div class="slider-container">
+                        <input type="range" id="influenceScale" min="20" max="180" step="5" value="90" oninput="updateParam('influenceScale', this.value)">
+                        <span class="value-display" id="influenceScale-value">90</span>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>Breathing Rate</label>
+                    <div class="slider-container">
+                        <input type="range" id="breathingRate" min="0.002" max="0.02" step="0.001" value="0.008" oninput="updateParam('breathingRate', this.value)">
+                        <span class="value-display" id="breathingRate-value">0.008</span>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>Warmth</label>
+                    <div class="slider-container">
+                        <input type="range" id="warmth" min="0" max="1" step="0.05" value="0.55" oninput="updateParam('warmth', this.value)">
+                        <span class="value-display" id="warmth-value">0.55</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="control-section">
+                <h3>Colors</h3>
+                <div class="color-group">
+                    <label>Primary Accent</label>
+                    <div class="color-picker-container">
+                        <input type="color" id="color1" value="#d97757" onchange="updateColor('color1', this.value)">
+                        <span class="color-value" id="color1-value">#d97757</span>
+                    </div>
+                </div>
+                <div class="color-group">
+                    <label>Secondary Accent</label>
+                    <div class="color-picker-container">
+                        <input type="color" id="color2" value="#6a9bcc" onchange="updateColor('color2', this.value)">
+                        <span class="color-value" id="color2-value">#6a9bcc</span>
+                    </div>
+                </div>
+                <div class="color-group">
+                    <label>Tertiary Accent</label>
+                    <div class="color-picker-container">
+                        <input type="color" id="color3" value="#788c5d" onchange="updateColor('color3', this.value)">
+                        <span class="color-value" id="color3-value">#788c5d</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="control-section">
+                <h3>Actions</h3>
+                <div class="button-row">
+                    <button class="button" onclick="regenerate()">Regenerate</button>
+                    <button class="button secondary" onclick="resetParameters()">Reset</button>
+                </div>
+                <div class="button-row" style="margin-top: 8px;">
+                    <button class="button tertiary" onclick="downloadPNG()">Download PNG</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="canvas-area">
+            <div id="canvas-container">
+                <div class="loading">Initializing generative art...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ═══════════════════════════════════════════════════════════════════════
+        // ADAPTIVE RESONANCE — PARAMETERS
+        // ═══════════════════════════════════════════════════════════════════════
+
+        let params = {
+            seed: 12345,
+            attentionDensity: 1600,
+            thoughtSpeed: 1.2,
+            influenceScale: 90,
+            breathingRate: 0.008,
+            warmth: 0.55,
+            colorPalette: ['#d97757', '#6a9bcc', '#788c5d']
+        };
+
+        let defaultParams = JSON.parse(JSON.stringify(params));
+
+        // ═══════════════════════════════════════════════════════════════════════
+        // ADAPTIVE RESONANCE — ALGORITHM
+        // ═══════════════════════════════════════════════════════════════════════
+
+        let particles = [];
+        let attractors = [];
+        let numAttractors = 5;
+        let bgPaper;
+
+        function setup() {
+            let canvas = createCanvas(1200, 1200);
+            canvas.parent('canvas-container');
+            colorMode(HSB, 360, 100, 100, 100);
+            bgPaper = color(45, 4, 98);
+            initializeSystem();
+            document.querySelector('.loading').style.display = 'none';
+        }
+
+        function initializeSystem() {
+            randomSeed(params.seed);
+            noiseSeed(params.seed);
+
+            particles = [];
+            attractors = [];
+
+            for (let i = 0; i < numAttractors; i++) {
+                attractors.push(new Attractor(i));
+            }
+
+            for (let i = 0; i < params.attentionDensity; i++) {
+                particles.push(new Particle());
+            }
+
+            background(bgPaper);
+        }
+
+        function draw() {
+            let breath = sin(frameCount * params.breathingRate * TWO_PI);
+            let breathStrength = map(breath, -1, 1, 0.82, 1.18);
+            let bgAlpha = map(params.thoughtSpeed, 0.2, 3.0, 8, 22);
+
+            noStroke();
+            fill(hue(bgPaper), saturation(bgPaper), brightness(bgPaper), bgAlpha);
+            rect(0, 0, width, height);
+
+            for (let a of attractors) {
+                a.update(breathStrength);
+            }
+
+            for (let p of particles) {
+                p.applyAttractors(attractors, breathStrength);
+                p.update();
+                p.display();
+            }
+
+            for (let p of particles) {
+                if (p.isDead()) {
+                    p.reset();
+                }
+            }
+        }
+
+        // ═══════════════════════════════════════════════════════════════════════
+        // CLASSES
+        // ═══════════════════════════════════════════════════════════════════════
+
+        class Attractor {
+            constructor(index) {
+                this.index = index;
+                this.phase = random(TWO_PI);
+                this.radius = random(120, 320);
+                this.speed = random(0.0003, 0.001);
+                this.noiseOffset = createVector(random(1000), random(1000));
+                this.pos = createVector(width / 2, height / 2);
+            }
+
+            update(breathStrength) {
+                let t = frameCount * this.speed + this.phase;
+                let nx = noise(this.noiseOffset.x + t * 0.5);
+                let ny = noise(this.noiseOffset.y + t * 0.5);
+                let cx = width / 2 + cos(t) * this.radius * breathStrength;
+                let cy = height / 2 + sin(t * 0.7 + this.phase) * this.radius * breathStrength;
+                this.pos.x = lerp(cx, nx * width, 0.18);
+                this.pos.y = lerp(cy, ny * height, 0.18);
+            }
+        }
+
+        class Particle {
+            constructor() {
+                this.reset();
+                this.life = random(100, 400);
+            }
+
+            reset() {
+                let edge = floor(random(4));
+                if (edge === 0) this.pos = createVector(random(width), -10);
+                else if (edge === 1) this.pos = createVector(width + 10, random(height));
+                else if (edge === 2) this.pos = createVector(random(width), height + 10);
+                else this.pos = createVector(-10, random(height));
+
+                this.vel = p5.Vector.random2D();
+                this.vel.mult(random(0.2, 0.8));
+                this.acc = createVector(0, 0);
+                this.life = random(180, 500);
+                this.maxLife = this.life;
+                this.size = random(0.8, 2.4);
+                this.colorIndex = floor(random(3));
+                this.noiseOffset = random(1000);
+            }
+
+            applyAttractors(attractors, breathStrength) {
+                let totalForce = createVector(0, 0);
+
+                for (let a of attractors) {
+                    let dir = p5.Vector.sub(a.pos, this.pos);
+                    let d = dir.mag();
+                    dir.normalize();
+
+                    let influence = params.influenceScale * breathStrength;
+                    let strength = 0;
+                    if (d < influence) {
+                        strength = map(d, 0, influence, 2.5, 0.15) * params.thoughtSpeed;
+                    } else {
+                        strength = map(constrain(d, influence, influence * 3), influence, influence * 3, 0.12, 0.02);
+                    }
+
+                    dir.mult(strength);
+                    totalForce.add(dir);
+                }
+
+                let noiseAngle = noise(this.pos.x * 0.003, this.pos.y * 0.003, frameCount * 0.002 + this.noiseOffset) * TWO_PI * 2;
+                let noiseForce = p5.Vector.fromAngle(noiseAngle);
+                noiseForce.mult(0.25 * params.thoughtSpeed);
+                totalForce.add(noiseForce);
+
+                let centerDir = p5.Vector.sub(createVector(width / 2, height / 2), this.pos);
+                centerDir.normalize();
+                centerDir.mult(0.04 * params.thoughtSpeed);
+                totalForce.add(centerDir);
+
+                this.acc.add(totalForce);
+            }
+
+            update() {
+                this.vel.add(this.acc);
+                this.vel.limit(params.thoughtSpeed * 2.8);
+                this.pos.add(this.vel);
+                this.acc.mult(0);
+                this.life--;
+
+                let drag = map(this.vel.mag(), 0, params.thoughtSpeed * 2.8, 0.96, 0.88);
+                this.vel.mult(drag);
+            }
+
+            display() {
+                let lifeRatio = this.life / this.maxLife;
+                let fadeIn = constrain(map(this.maxLife - this.life, 0, 60, 0, 1), 0, 1);
+                let fadeOut = constrain(lifeRatio, 0, 1);
+                let alpha = fadeIn * fadeOut * 55;
+
+                let speed = this.vel.mag();
+                let speedFactor = map(speed, 0, params.thoughtSpeed * 2.8, 0.3, 1.0);
+
+                let c = colorFromPalette(this.colorIndex, speedFactor);
+                let h = hue(c);
+                let s = saturation(c);
+                let b = brightness(c);
+
+                noStroke();
+                fill(h, s * 0.85, b, alpha);
+                ellipse(this.pos.x, this.pos.y, this.size * (0.8 + speedFactor * 0.7));
+            }
+
+            isDead() {
+                return this.life <= 0 ||
+                    this.pos.x < -40 || this.pos.x > width + 40 ||
+                    this.pos.y < -40 || this.pos.y > height + 40;
+            }
+        }
+
+        function colorFromPalette(index, intensity) {
+            let base = color(params.colorPalette[index % 3]);
+            let warm1 = color('#e8a87c');
+            let cool1 = color('#8fb8c9');
+            let neutral = color('#a8b89a');
+
+            let mixColor;
+            if (params.warmth > 0.66) {
+                mixColor = lerpColor(base, warm1, (params.warmth - 0.66) * 2.9);
+            } else if (params.warmth < 0.33) {
+                mixColor = lerpColor(base, cool1, (0.33 - params.warmth) * 2.9);
+            } else {
+                mixColor = lerpColor(base, neutral, abs(params.warmth - 0.5) * 1.8);
+            }
+
+            let h = hue(mixColor);
+            let s = saturation(mixColor);
+            let b = brightness(mixColor) * (0.65 + intensity * 0.35);
+            return color(h, s, b);
+        }
+
+        // ═══════════════════════════════════════════════════════════════════════
+        // UI CONTROL HANDLERS
+        // ═══════════════════════════════════════════════════════════════════════
+
+        function updateParam(paramName, value) {
+            let num = parseFloat(value);
+            params[paramName] = num;
+            document.getElementById(paramName + '-value').textContent = value;
+
+            if (paramName === 'attentionDensity') {
+                let diff = num - particles.length;
+                if (diff > 0) {
+                    for (let i = 0; i < diff; i++) particles.push(new Particle());
+                } else {
+                    particles.splice(0, -diff);
+                }
+            }
+        }
+
+        function updateColor(colorId, value) {
+            document.getElementById(colorId + '-value').textContent = value;
+            let idx = parseInt(colorId.replace('color', '')) - 1;
+            params.colorPalette[idx] = value;
+        }
+
+        // ═══════════════════════════════════════════════════════════════════════
+        // SEED CONTROL FUNCTIONS
+        // ═══════════════════════════════════════════════════════════════════════
+
+        function updateSeedDisplay() {
+            document.getElementById('seed-input').value = params.seed;
+        }
+
+        function updateSeed() {
+            let input = document.getElementById('seed-input');
+            let newSeed = parseInt(input.value);
+            if (newSeed && newSeed > 0) {
+                params.seed = newSeed;
+                initializeSystem();
+            } else {
+                updateSeedDisplay();
+            }
+        }
+
+        function previousSeed() {
+            params.seed = Math.max(1, params.seed - 1);
+            updateSeedDisplay();
+            initializeSystem();
+        }
+
+        function nextSeed() {
+            params.seed = params.seed + 1;
+            updateSeedDisplay();
+            initializeSystem();
+        }
+
+        function randomSeedAndUpdate() {
+            params.seed = Math.floor(Math.random() * 999999) + 1;
+            updateSeedDisplay();
+            initializeSystem();
+        }
+
+        function regenerate() {
+            initializeSystem();
+        }
+
+        function resetParameters() {
+            params = JSON.parse(JSON.stringify(defaultParams));
+
+            document.getElementById('attentionDensity').value = params.attentionDensity;
+            document.getElementById('attentionDensity-value').textContent = params.attentionDensity;
+            document.getElementById('thoughtSpeed').value = params.thoughtSpeed;
+            document.getElementById('thoughtSpeed-value').textContent = params.thoughtSpeed;
+            document.getElementById('influenceScale').value = params.influenceScale;
+            document.getElementById('influenceScale-value').textContent = params.influenceScale;
+            document.getElementById('breathingRate').value = params.breathingRate;
+            document.getElementById('breathingRate-value').textContent = params.breathingRate;
+            document.getElementById('warmth').value = params.warmth;
+            document.getElementById('warmth-value').textContent = params.warmth;
+
+            document.getElementById('color1').value = params.colorPalette[0];
+            document.getElementById('color1-value').textContent = params.colorPalette[0];
+            document.getElementById('color2').value = params.colorPalette[1];
+            document.getElementById('color2-value').textContent = params.colorPalette[1];
+            document.getElementById('color3').value = params.colorPalette[2];
+            document.getElementById('color3-value').textContent = params.colorPalette[2];
+
+            updateSeedDisplay();
+            initializeSystem();
+        }
+
+        function downloadPNG() {
+            saveCanvas('adaptive-resonance-seed-' + params.seed, 'png');
+        }
+
+        window.addEventListener('load', function() {
+            updateSeedDisplay();
+        });
+    </script>
+</body>
+</html>

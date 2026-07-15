@@ -1,0 +1,6 @@
+{
+  "mode": "moderate",
+  "reminder_template": "【严师】别忘了「{title}」，截止时间 {deadline}，合理分配时间。",
+  "followup_escalation": [120, 240],
+  "review_suggestion": "连续 {consecutive_missed} 次未完成，建议切换至'时刻提醒型'强化执行"
+}

@@ -1,0 +1,6 @@
+{
+  "mode": "strict",
+  "reminder_template": "【严师】你的军令状「{title}」将在 {deadline} 到期，立即执行，不要找理由！",
+  "followup_escalation": [60, 180, 360],
+  "review_suggestion": "连续 {consecutive_missed} 次未完成，建议切换至'时刻提醒型'强化执行"
+}

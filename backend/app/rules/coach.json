@@ -1,0 +1,6 @@
+{
+  "mode": "coach",
+  "reminder_template": "【严师】关于「{title}」，试试番茄工作法或拆分任务？",
+  "followup_escalation": [],
+  "review_suggestion": "连续 {consecutive_missed} 次未完成，可以尝试更主动的方法交流型策略"
+}
